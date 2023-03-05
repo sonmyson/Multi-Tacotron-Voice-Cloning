@@ -3,7 +3,9 @@ from synthesizer.infolog import log
 from synthesizer.models import create_model
 from synthesizer.utils import plot
 from synthesizer import audio
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 import numpy as np
 import os
 
