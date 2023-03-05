@@ -1,4 +1,4 @@
-from tensorboard.plugins import hparams as HParams
+from tensorboard.plugins.hparams import api as HParams
 
 # Default hyperparameters
 hparams = HParams(
