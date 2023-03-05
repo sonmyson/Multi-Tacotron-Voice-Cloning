@@ -1,4 +1,5 @@
-from tensorflow.contrib.training import HParams
+%load_ext tensorboard
+from tensorboard.plugins import HParams
 
 # Default hyperparameters
 hparams = HParams(
