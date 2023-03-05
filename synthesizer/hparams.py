@@ -1,5 +1,5 @@
 #from tensorboard.plugins.hparams import api as HParams
-from tensor2tensor.utils import HParams
+from tensor2tensor.utils.hparams import HParams
 
 # Default hyperparameters
 hparams = HParams(
