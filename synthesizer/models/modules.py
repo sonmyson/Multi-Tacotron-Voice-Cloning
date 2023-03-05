@@ -6,8 +6,8 @@ class HighwayNet:
         self.units = units
         self.scope = "HighwayNet" if name is None else name
         
-        self.H_layer = tf.compat.v1.layers.Dense(units=self.units, activation=tf.nn.relu, name="H")
-        self.T_layer = tf.compat.v1.layers.Dense(units=self.units, activation=tf.nn.sigmoid, name="T",
+        self.H_layer = tf.compat.v1.layers.Dense(units=self.units, activation=tf.compat.v1.nn.relu, name="H")
+        self.T_layer = tf.compat.v1.layers.Dense(units=self.units, activation=tf.compat.v1.nn.sigmoid, name="T",
                                        bias_initializer=tf.constant_initializer(-1.))
     
     def __call__(self, inputs):
@@ -34,8 +34,8 @@ class CBHG:
         self.highwaynet_layers = [
             HighwayNet(highway_units, name="{}_highwaynet_{}".format(self.scope, i + 1)) for i in
             range(n_highwaynet_layers)]
-        self._fw_cell = tf.nn.rnn_cell.GRUCell(rnn_units, name="{}_forward_RNN".format(self.scope))
-        self._bw_cell = tf.nn.rnn_cell.GRUCell(rnn_units, name="{}_backward_RNN".format(self.scope))
+        self._fw_cell = tf.compat.v1.nn.rnn_cell.GRUCell(rnn_units, name="{}_forward_RNN".format(self.scope))
+        self._bw_cell = tf.compat.v1.nn.rnn_cell.GRUCell(rnn_units, name="{}_backward_RNN".format(self.scope))
     
     def __call__(self, inputs, input_lengths):
         with tf.compat.v1.variable_scope(self.scope):
@@ -46,7 +46,7 @@ class CBHG:
                 # of the input sequence
                 # This makes one of the strengths of the CBHG block on sequences.
                 conv_outputs = tf.concat(
-                    [conv1d(inputs, k, self.conv_channels, tf.nn.relu, self.is_training, 0.,
+                    [conv1d(inputs, k, self.conv_channels, tf.compat.v1.nn.relu, self.is_training, 0.,
                             "conv1d_{}".format(k)) for k in range(1, self.K + 1)],
                     axis=-1
                 )
@@ -61,7 +61,7 @@ class CBHG:
             
             # Two projection layers
             proj1_output = conv1d(maxpool_output, self.projection_kernel_size, self.projections[0],
-                                  tf.nn.relu, self.is_training, 0., "proj1")
+                                  tf.compat.v1.nn.relu, self.is_training, 0., "proj1")
             proj2_output = conv1d(proj1_output, self.projection_kernel_size, self.projections[1],
                                   lambda _: _, self.is_training, 0., "proj2")
             
@@ -144,16 +144,16 @@ class ZoneoutLSTMCell(tf.compat.v1.nn.rnn_cell.RNNCell):
         if self.is_training:
             # nn.dropout takes keep_prob (probability to keep activations) not drop_prob (
 			# probability to mask activations)!
-            c = (1 - self._zoneout_cell) * tf.nn.dropout(new_c - prev_c,
+            c = (1 - self._zoneout_cell) * tf.compat.v1.nn.dropout(new_c - prev_c,
                                                          (1 - self._zoneout_cell)) + prev_c
-            h = (1 - self._zoneout_outputs) * tf.nn.dropout(new_h - prev_h,
+            h = (1 - self._zoneout_outputs) * tf.compat.v1.nn.dropout(new_h - prev_h,
                                                             (1 - self._zoneout_outputs)) + prev_h
         
         else:
             c = (1 - self._zoneout_cell) * new_c + self._zoneout_cell * prev_c
             h = (1 - self._zoneout_outputs) * new_h + self._zoneout_outputs * prev_h
         
-        new_state = tf.nn.rnn_cell.LSTMStateTuple(c, h) if self.state_is_tuple else tf.concat(1, [c,
+        new_state = tf.compat.v1.nn.rnn_cell.LSTMStateTuple(c, h) if self.state_is_tuple else tf.concat(1, [c,
                                                                                                   h])
         
         return output, new_state
@@ -163,7 +163,7 @@ class EncoderConvolutions:
     """Encoder convolutional layers used to find local dependencies in inputs characters.
     """
     
-    def __init__(self, is_training, hparams, activation=tf.nn.relu, scope=None):
+    def __init__(self, is_training, hparams, activation=tf.compat.v1.nn.relu, scope=None):
         """
         Args:
             is_training: Boolean, determines if the model is training or in inference to control 
@@ -242,7 +242,7 @@ class Prenet:
     """Two fully connected layers used as an information bottleneck for the attention.
     """
     
-    def __init__(self, is_training, layers_sizes=[256, 256], drop_rate=0.5, activation=tf.nn.relu,
+    def __init__(self, is_training, layers_sizes=[256, 256], drop_rate=0.5, activation=tf.compat.v1.nn.relu,
                  scope=None):
         """
         Args:
@@ -345,7 +345,7 @@ class StopProjection:
     """Projection to a scalar and through a sigmoid activation
     """
     
-    def __init__(self, is_training, shape=1, activation=tf.nn.sigmoid, scope=None):
+    def __init__(self, is_training, shape=1, activation=tf.compat.v1.nn.sigmoid, scope=None):
         """
         Args:
             is_training: Boolean, to control the use of sigmoid function as it is useless to use it
@@ -378,7 +378,7 @@ class Postnet:
     frames)
     """
     
-    def __init__(self, is_training, hparams, activation=tf.nn.tanh, scope=None):
+    def __init__(self, is_training, hparams, activation=tf.compat.v1.nn.tanh, scope=None):
         """
         Args:
             is_training: Boolean, determines if the model is training or in inference to control 
@@ -486,8 +486,8 @@ def MaskedSigmoidCrossEntropy(targets, outputs, targets_lengths, hparams, mask=N
     with tf.control_dependencies([tf.assert_equal(tf.shape(targets), tf.shape(mask))]):
         # Use a weighted sigmoid cross entropy to measure the <stop_token> loss. Set 
         # hparams.cross_entropy_pos_weight to 1
-        # will have the same effect as  vanilla tf.nn.sigmoid_cross_entropy_with_logits.
-        losses = tf.nn.weighted_cross_entropy_with_logits(targets=targets, logits=outputs,
+        # will have the same effect as  vanilla tf.compat.v1.nn.sigmoid_cross_entropy_with_logits.
+        losses = tf.compat.v1.nn.weighted_cross_entropy_with_logits(targets=targets, logits=outputs,
                                                           pos_weight=hparams.cross_entropy_pos_weight)
     
     with tf.control_dependencies([tf.assert_equal(tf.shape(mask), tf.shape(losses))]):
