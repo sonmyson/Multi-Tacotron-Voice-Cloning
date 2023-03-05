@@ -54,7 +54,7 @@ class Synthesizer:
         """
         if self._low_mem:
             raise Exception("Cannot load the synthesizer permanently in low mem mode")
-        tf.reset_default_graph()
+        tf.compat.v1.reset_default_graph()
         self._model = Tacotron2(self.checkpoint_fpath, hparams)
             
     def synthesize_spectrograms(self, texts: List[str],
