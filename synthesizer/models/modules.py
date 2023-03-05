@@ -11,7 +11,7 @@ class HighwayNet:
                                        bias_initializer=tf.constant_initializer(-1.))
     
     def __call__(self, inputs):
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             H = self.H_layer(inputs)
             T = self.T_layer(inputs)
             return H * T + inputs * (1. - T)
@@ -38,8 +38,8 @@ class CBHG:
         self._bw_cell = tf.nn.rnn_cell.GRUCell(rnn_units, name="{}_backward_RNN".format(self.scope))
     
     def __call__(self, inputs, input_lengths):
-        with tf.variable_scope(self.scope):
-            with tf.variable_scope("conv_bank"):
+        with tf.compat.v1.variable_scope(self.scope):
+            with tf.compat.v1.variable_scope("conv_bank"):
                 # Convolution bank: concatenate on the last axis to stack channels from all 
                 # convolutions
                 # The convolution bank uses multiple different kernel sizes to have many insights 
@@ -184,7 +184,7 @@ class EncoderConvolutions:
         self.enc_conv_num_layers = hparams.enc_conv_num_layers
     
     def __call__(self, inputs):
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             x = inputs
             for i in range(self.enc_conv_num_layers):
                 x = conv1d(x, self.kernel_size, self.channels, self.activation,
@@ -226,7 +226,7 @@ class EncoderRNN:
                                         name="encoder_bw_LSTM")
     
     def __call__(self, inputs, input_lengths):
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             outputs, (fw_state, bw_state) = tf.nn.bidirectional_dynamic_rnn(
                 self._fw_cell,
                 self._bw_cell,
@@ -263,7 +263,7 @@ class Prenet:
     def __call__(self, inputs):
         x = inputs
         
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             for i, size in enumerate(self.layers_sizes):
                 dense = tf.layers.dense(x, units=size, activation=self.activation,
                                         name="dense_{}".format(i + 1))
@@ -305,7 +305,7 @@ class DecoderRNN:
         self._cell = tf.contrib.rnn.MultiRNNCell(self.rnn_layers, state_is_tuple=True)
     
     def __call__(self, inputs, states):
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             return self._cell(inputs, states)
 
 
@@ -331,7 +331,7 @@ class FrameProjection:
                                      name="projection_{}".format(self.scope))
     
     def __call__(self, inputs):
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             # If activation==None, this returns a simple Linear projection
             # else the projection will be passed through an activation function
             # output = tf.layers.dense(inputs, units=self.shape, activation=self.activation,
@@ -362,7 +362,7 @@ class StopProjection:
         self.scope = "stop_token_projection" if scope is None else scope
     
     def __call__(self, inputs):
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             output = tf.layers.dense(inputs, units=self.shape,
                                      activation=None, name="projection_{}".format(self.scope))
             
@@ -399,7 +399,7 @@ class Postnet:
         self.drop_rate = hparams.tacotron_dropout_rate
     
     def __call__(self, inputs):
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             x = inputs
             for i in range(self.postnet_num_layers - 1):
                 x = conv1d(x, self.kernel_size, self.channels, self.activation,
@@ -412,7 +412,7 @@ class Postnet:
 
 
 def conv1d(inputs, kernel_size, channels, activation, is_training, drop_rate, scope):
-    with tf.variable_scope(scope):
+    with tf.compat.v1.variable_scope(scope):
         conv1d_output = tf.layers.conv1d(
             inputs,
             filters=channels,
