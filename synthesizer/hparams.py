@@ -1,4 +1,3 @@
-%load_ext tensorboard
 from tensorboard.plugins import HParams
 
 # Default hyperparameters
