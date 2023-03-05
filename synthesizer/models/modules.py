@@ -79,7 +79,7 @@ class CBHG:
             rnn_input = highway_input
             
             # Bidirectional RNN
-            outputs, states = tf.nn.bidirectional_dynamic_rnn(
+            outputs, states = tf.compat.v1.nn.bidirectional_dynamic_rnn(
                 self._fw_cell,
                 self._bw_cell,
                 rnn_input,
@@ -227,7 +227,7 @@ class EncoderRNN:
     
     def __call__(self, inputs, input_lengths):
         with tf.compat.v1.variable_scope(self.scope):
-            outputs, (fw_state, bw_state) = tf.nn.bidirectional_dynamic_rnn(
+            outputs, (fw_state, bw_state) = tf.compat.v1.nn.bidirectional_dynamic_rnn(
                 self._fw_cell,
                 self._bw_cell,
                 inputs,
