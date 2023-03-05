@@ -8,6 +8,8 @@ import numpy as np
 import os
 
 
+tf.compat.v1.disable_eager_execution()
+
 class Tacotron2:
     def __init__(self, checkpoint_path, hparams, gta=False, model_name="Tacotron"):
         log("Constructing model: %s" % model_name)
