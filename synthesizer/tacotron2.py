@@ -3,9 +3,7 @@ from synthesizer.infolog import log
 from synthesizer.models import create_model
 from synthesizer.utils import plot
 from synthesizer import audio
-#import tensorflow as tf
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
+import tensorflow as tf
 import numpy as np
 import os
 
@@ -14,12 +12,12 @@ class Tacotron2:
     def __init__(self, checkpoint_path, hparams, gta=False, model_name="Tacotron"):
         log("Constructing model: %s" % model_name)
         #Force the batch size to be known in order to use attention masking in batch synthesis
-        inputs = tf.placeholder(tf.int32, (None, None), name="inputs")
-        input_lengths = tf.placeholder(tf.int32, (None,), name="input_lengths")
-        speaker_embeddings = tf.placeholder(tf.float32, (None, hparams.speaker_embedding_size),
+        inputs = tf.compat.v1.placeholder(tf.int32, (None, None), name="inputs")
+        input_lengths = tf.compat.v1.placeholder(tf.int32, (None,), name="input_lengths")
+        speaker_embeddings = tf.compat.v1.placeholder(tf.float32, (None, hparams.speaker_embedding_size),
                                             name="speaker_embeddings")
-        targets = tf.placeholder(tf.float32, (None, None, hparams.num_mels), name="mel_targets")
-        split_infos = tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name="split_infos")
+        targets = tf.compat.v1.placeholder(tf.float32, (None, None, hparams.num_mels), name="mel_targets")
+        split_infos = tf.compat.v1.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name="split_infos")
         with tf.variable_scope("Tacotron_model") as scope:
             self.model = create_model(model_name, hparams)
             if gta:
