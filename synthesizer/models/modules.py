@@ -88,7 +88,7 @@ class CBHG:
             return tf.concat(outputs, axis=2)  # Concat forward and backward outputs
 
 
-class ZoneoutLSTMCell(tf.nn.rnn_cell.RNNCell):
+class ZoneoutLSTMCell(tf.compat.v1.nn.rnn_cell.RNNCell):
     """Wrapper for tf LSTM to create Zoneout LSTM Cell
 
     inspired by:
@@ -109,7 +109,7 @@ class ZoneoutLSTMCell(tf.nn.rnn_cell.RNNCell):
         if zm < 0. or zs > 1.:
             raise ValueError("One/both provided Zoneout factors are not in [0, 1]")
         
-        self._cell = tf.nn.rnn_cell.LSTMCell(num_units, state_is_tuple=state_is_tuple, name=name)
+        self._cell = tf.compat.v1.nn.rnn_cell.LSTMCell(num_units, state_is_tuple=state_is_tuple, name=name)
         self._zoneout_cell = zoneout_factor_cell
         self._zoneout_outputs = zoneout_factor_output
         self.is_training = is_training
