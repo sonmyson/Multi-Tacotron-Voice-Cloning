@@ -6,8 +6,8 @@ class HighwayNet:
         self.units = units
         self.scope = "HighwayNet" if name is None else name
         
-        self.H_layer = tf.layers.Dense(units=self.units, activation=tf.nn.relu, name="H")
-        self.T_layer = tf.layers.Dense(units=self.units, activation=tf.nn.sigmoid, name="T",
+        self.H_layer = tf.compat.v1.layers.Dense(units=self.units, activation=tf.nn.relu, name="H")
+        self.T_layer = tf.compat.v1.layers.Dense(units=self.units, activation=tf.nn.sigmoid, name="T",
                                        bias_initializer=tf.constant_initializer(-1.))
     
     def __call__(self, inputs):
@@ -53,7 +53,7 @@ class CBHG:
             
             # Maxpooling (dimension reduction, Using max instead of average helps finding "Edges" 
 			# in mels)
-            maxpool_output = tf.layers.max_pooling1d(
+            maxpool_output = tf.compat.v1.layers.max_pooling1d(
                 conv_outputs,
                 pool_size=self.pool_size,
                 strides=1,
@@ -71,7 +71,7 @@ class CBHG:
             # Additional projection in case of dimension mismatch (for HighwayNet "residual" 
 			# connection)
             if highway_input.shape[2] != self.highway_units:
-                highway_input = tf.layers.dense(highway_input, self.highway_units)
+                highway_input = tf.compat.v1.layers.dense(highway_input, self.highway_units)
             
             # 4-layer HighwayNet
             for highwaynet in self.highwaynet_layers:
@@ -265,11 +265,11 @@ class Prenet:
         
         with tf.compat.v1.variable_scope(self.scope):
             for i, size in enumerate(self.layers_sizes):
-                dense = tf.layers.dense(x, units=size, activation=self.activation,
+                dense = tf.compat.v1.layers.dense(x, units=size, activation=self.activation,
                                         name="dense_{}".format(i + 1))
                 # The paper discussed introducing diversity in generation at inference time
                 # by using a dropout of 0.5 only in prenet layers (in both training and inference).
-                x = tf.layers.dropout(dense, rate=self.drop_rate, training=True,
+                x = tf.compat.v1.layers.dropout(dense, rate=self.drop_rate, training=True,
                                       name="dropout_{}".format(i + 1) + self.scope)
         return x
 
@@ -327,14 +327,14 @@ class FrameProjection:
         self.activation = activation
         
         self.scope = "Linear_projection" if scope is None else scope
-        self.dense = tf.layers.Dense(units=shape, activation=activation,
+        self.dense = tf.compat.v1.layers.Dense(units=shape, activation=activation,
                                      name="projection_{}".format(self.scope))
     
     def __call__(self, inputs):
         with tf.compat.v1.variable_scope(self.scope):
             # If activation==None, this returns a simple Linear projection
             # else the projection will be passed through an activation function
-            # output = tf.layers.dense(inputs, units=self.shape, activation=self.activation,
+            # output = tf.compat.v1.layers.dense(inputs, units=self.shape, activation=self.activation,
             # 	name="projection_{}".format(self.scope))
             output = self.dense(inputs)
             
@@ -363,7 +363,7 @@ class StopProjection:
     
     def __call__(self, inputs):
         with tf.compat.v1.variable_scope(self.scope):
-            output = tf.layers.dense(inputs, units=self.shape,
+            output = tf.compat.v1.layers.dense(inputs, units=self.shape,
                                      activation=None, name="projection_{}".format(self.scope))
             
             # During training, don"t use activation as it is integrated inside the 
@@ -413,15 +413,15 @@ class Postnet:
 
 def conv1d(inputs, kernel_size, channels, activation, is_training, drop_rate, scope):
     with tf.compat.v1.variable_scope(scope):
-        conv1d_output = tf.layers.conv1d(
+        conv1d_output = tf.compat.v1.layers.conv1d(
             inputs,
             filters=channels,
             kernel_size=kernel_size,
             activation=None,
             padding="same")
-        batched = tf.layers.batch_normalization(conv1d_output, training=is_training)
+        batched = tf.compat.v1.layers.batch_normalization(conv1d_output, training=is_training)
         activated = activation(batched)
-        return tf.layers.dropout(activated, rate=drop_rate, training=is_training,
+        return tf.compat.v1.layers.dropout(activated, rate=drop_rate, training=is_training,
                                  name="dropout_{}".format(scope))
 
 
